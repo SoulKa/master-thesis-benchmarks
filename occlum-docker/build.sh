@@ -1,0 +1,1 @@
+docker build -t occlum-benchmark -f Dockerfile ../

@@ -1,0 +1,18 @@
+{
+  "name": "plotting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Louis Wilke",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^7.2.0",
+    "plotly": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/plotly.js": "^1.54.10"
+  }
+}

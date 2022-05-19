@@ -1,0 +1,69 @@
+# Benchmark manifest template
+
+loader.entrypoint = "file:{{ gramine.libos }}"
+loader.preload = "file:{{ gramine.libos }}" # for compatibility with v1.0
+libos.entrypoint = "main"
+loader.log_level = "error"
+loader.insecure__use_cmdline_argv = true
+loader.insecure__use_host_env = true
+loader.pal_internal_mem_size = "64M"
+
+loader.env.LD_LIBRARY_PATH = "/lib:/lib/{{ arch_libdir }}:/usr/lib/{{ arch_libdir }}"
+
+# lib dir to load the interpreter of gramine
+fs.mount.lib.type = "chroot"
+fs.mount.lib.path = "/lib"
+fs.mount.lib.uri = "file:{{ gramine.runtimedir() }}"
+
+# for shared libararies
+fs.mount.lib2.type = "chroot"
+fs.mount.lib2.path = "/usr/lib/{{ arch_libdir }}"
+fs.mount.lib2.uri = "file:/usr/lib/{{ arch_libdir }}"
+fs.mount.lib3.type = "chroot"
+fs.mount.lib3.path = "/lib/{{ arch_libdir }}"
+fs.mount.lib3.uri = "file:/lib/{{ arch_libdir }}"
+
+# temp FS
+fs.mount.tmp.type = "chroot"
+fs.mount.tmp.path = "/tmp"
+fs.mount.tmp.uri = "file:/tmp"
+
+# SGX settings
+sgx.debug = true
+sgx.nonpie_binary = true
+sys.enable_sigterm_injection = true
+sgx.thread_num = 20 # gramine uses some helper threads in enclave, need some more than 16
+sgx.rpc_thread_num = 8 # the amount of S-Threads
+sgx.enclave_size = "512M"
+
+sgx.trusted_files = [
+  "file:{{ gramine.libos }}",
+  "file:{{ gramine.runtimedir() }}/",
+  "file:main"
+]
+
+sgx.allowed_files = [
+  "file:/tmp/stat",
+  "file:/tmp/benchmark_pid",
+  "file:/tmp/benchmark.json",
+  "file:/tmp/benchmarks_config/",
+  "file:/tmp/read-benchmark.txt",
+  "file:/tmp/write-benchmark-0.bin",
+  "file:/tmp/write-benchmark-1.bin",
+  "file:/tmp/write-benchmark-2.bin",
+  "file:/tmp/write-benchmark-3.bin",
+  "file:/tmp/write-benchmark-4.bin",
+  "file:/tmp/write-benchmark-5.bin",
+  "file:/tmp/write-benchmark-6.bin",
+  "file:/tmp/write-benchmark-7.bin",
+  "file:/tmp/write-benchmark-8.bin",
+  "file:/tmp/write-benchmark-9.bin",
+  "file:/tmp/write-benchmark-10.bin",
+  "file:/tmp/write-benchmark-11.bin",
+  "file:/tmp/write-benchmark-12.bin",
+  "file:/tmp/write-benchmark-13.bin",
+  "file:/tmp/write-benchmark-14.bin",
+  "file:/tmp/write-benchmark-15.bin",
+  "file:/usr/lib/{{ arch_libdir }}/",
+  "file:/lib/{{ arch_libdir }}/"
+]

@@ -1,0 +1,32 @@
+{
+    "plots": {
+        "macro": [
+            "sgx16/macro/redis-4/redis-throughput-bar.pdf",
+            "sgx16/macro/nginx-64K-latency-throughput-zoomed.pdf",
+            "sgx16/macro/vault-128-latency-throughput-zoomed.pdf",
+            "sgx16/macro/vault-128/vault-throughput-bar.pdf"
+        ],
+        "micro": [
+            ["sgx16/variable-throughput/2-1000000/variable-spinning-utilization-unsorted.pdf", "variable-spinning-utilization-unsorted-1000000.pdf"],
+            ["sgx16/variable-throughput/2-2000/write-variable-throughput-utilization-unsorted.pdf", "write-variable-throughput-utilization-unsorted-2000.pdf"],
+            "sgx16/variable-throughput/2-1000000/sleep-spin-ratio/spin-sleep-time-1000000.pdf",
+            "sgx16/basic/write-empty-duration-box.pdf",
+            "sgx16/basic/write-empty-throughput-bar.pdf",
+            "sgx16/variable-throughput/100/low-throughput-cpu-utilization-box.pdf",
+            ["sgx16/variable-throughput/2-2000/write-variable-throughput-zoomed.pdf", "write-variable-throughput-utilization-unsorted-2000-zoomed.pdf"],
+            ["sgx16/variable-throughput/100/1K-espins/low-throughput-cpu-utilization-box.pdf", "low-throughput-cpu-utilization-box-1K-espins.pdf"],
+            ["sgx16/sspin-test/2-500-cpu-utilization-line.pdf", "sspin-test-cpu-utilization-line-500.pdf"],
+            ["sgx16/sspin-test/2-500000-cpu-utilization-line.pdf", "sspin-test-cpu-utilization-line-500K.pdf"],
+            ["sgx16/sspin-test/2-500000-frequency-line.pdf", "sspin-test-frequency-line-500K.pdf"],
+            ["sgx16/ssleep-test/2-500-cpu-utilization-line.pdf", "ssleep-test-cpu-utilization-line-500.pdf"],
+            ["sgx16/ssleep-test/2-500000-cpu-utilization-line.pdf", "ssleep-test-cpu-utilization-line-500K.pdf"],
+            ["sgx16/ssleep-test/2-500000-frequency-line.pdf", "ssleep-test-frequency-line-500K.pdf"]
+        ],
+        "other": [
+            "sgx16/dump/s3-parameters/s3-parameters-steady-alternating-combined.pdf",
+            "sgx16/dump/s3-parameters/s3-parameters-gaps-combined.pdf",
+            "sgx16/dump/mutex-benchmark/mutex-duration-histogram-zoomed.pdf",
+            "sgx16/dump/mutex-benchmark/mutex-duration-line.pdf"
+        ]
+    }
+}
