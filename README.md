@@ -1,6 +1,6 @@
 # Source Code for Tools and Microbenchmarks
 
-This repository contains all microbenchmark routines used for my master thesis. The plotter and tools for Occlum and Gramine are also included. Note that these files are originially intended for my personal use only and I worked only on a single remote machine. Some bash scripts require fixed filepaths. If you need to use them, you must change these paths accordingly and install al dependencies.
+This repository contains all microbenchmark routines used for my master thesis. The plotter and tools for Occlum and Gramine are also included. Note that these files are originially intended for my personal use only and I worked only on a single remote machine thus some bash scripts require fixed filepaths. If you need to use them, you must change these paths accordingly and install all dependencies.
 
 ## Content of this Repository
 
