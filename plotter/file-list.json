@@ -20,7 +20,10 @@
             ["sgx16/sspin-test/2-500000-frequency-line.pdf", "sspin-test-frequency-line-500K.pdf"],
             ["sgx16/ssleep-test/2-500-cpu-utilization-line.pdf", "ssleep-test-cpu-utilization-line-500.pdf"],
             ["sgx16/ssleep-test/2-500000-cpu-utilization-line.pdf", "ssleep-test-cpu-utilization-line-500K.pdf"],
-            ["sgx16/ssleep-test/2-500000-frequency-line.pdf", "ssleep-test-frequency-line-500K.pdf"]
+            ["sgx16/ssleep-test/2-500000-frequency-line.pdf", "ssleep-test-frequency-line-500K.pdf"],
+            "sgx16/basic/write-empty-cpu-utilization-box.pdf",
+            "sgx16/basic/write-empty-efficiency-box.pdf",
+            ["sgx16/variable-throughput/100/low-throughput-partial.pdf", "low-throughput-cpu-utilization-box-partial.pdf"]
         ],
         "other": [
             "sgx16/dump/s3-parameters/s3-parameters-steady-alternating-combined.pdf",

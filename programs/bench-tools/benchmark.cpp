@@ -364,7 +364,7 @@ void FrequencyBenchmark::run() {
         running_since_micros = get_time_diff_micro(t1, t2);
         const double time_left_micros = TARGET_RUNTIME-running_since_micros;
         const double executions_left = TARGET_EXECUTIONS-m_uNumExecutions;
-        const unsigned int sleep_for_micros = std::max((int)(time_left_micros/(executions_left+1))-5, 1);
+        const unsigned int sleep_for_micros = std::max((int)(time_left_micros/(executions_left+1))-5, 0);
 
         // sleep if possible
         if ( running_since_micros >= TARGET_RUNTIME ) break;

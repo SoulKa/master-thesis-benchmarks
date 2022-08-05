@@ -513,11 +513,11 @@ async function main() {
                     }
                 }
                 break;
-
-            case "UTILIZATION-AT-FREQUENCY-BOX":
+            
+            case "THROUGHPUT-BOX":
                 {
-                    /** @type {import("plotly.js").Data[]} */ const cpuUtilizationLinePlot = [];
-                    let frequency = NaN;
+                    /** @type {import("plotly.js").Data[]} */ const data = [];
+                    let threads = NaN;
                     config.files.sort( ([ra, ca], [rb, cb]) => {
                         if (ra.index !== rb.index) return ra.index-rb.index;
                         if (ca.environmentVariables == null) return 1;
@@ -529,14 +529,14 @@ async function main() {
                     });
 
                     for (const [runtime, benchmark] of config.files) {
-                        if (benchmark.type !== "FREQUENCY-BENCHMARK") continue;
-                        if (benchmark.benchmarks[0].targetFrequency !== benchmark.benchmarks[benchmark.benchmarks.length-1].targetFrequency) throw new Error("Frequency is varying. Cannot plot this!");
-                        frequency = benchmark.benchmarks[0].targetFrequency;
+                        if (benchmark.type !== "TROUGHPUT-BENCHMARK") continue;
                         const envInfo = getEnvInfo(benchmark.environmentVariables);
+                        if (isNaN(threads)) threads = benchmark.numThreads;
+                        else if (threads !== benchmark.numThreads) throw new Error("Trying to compare benchmarks with different thread configuration!");
 
                         // runtimes
-                        cpuUtilizationLinePlot.push({
-                            y: benchmark.benchmarks.map( b => b.fullCpuTime/b.fullDuration*100 ),
+                        data.push({
+                            y: benchmark.runtimesMicroseconds.map(t => (1e6/t)*threads),
                             name: (!runtime.id.includes("scone") || (envInfo.ethreads === 8 && envInfo.queues === 8)) ? getRuntimeName(runtime, benchmark.environmentVariables, benchmark.name) : `(${envInfo.queues}Q ${envInfo.ethreads}E)`+" ".repeat(runtime.index),
                             type: "box",
                             line: {
@@ -547,10 +547,113 @@ async function main() {
                     }
 
                     // CPU accumulated time plot
-                    if (cpuUtilizationLinePlot.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-cpu-utilization-box" + ext))) {
+                    if (data.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-" + (config.name||"throughput-box") + ext))) {
                         await createPlot(
                             {
-                                data: cpuUtilizationLinePlot,
+                                data: data,
+                                layout: {
+                                    title: `<b>Throughput for High Workload</b>`,
+                                    yaxis: {
+                                        title: "<b>Throughput</b> [req/s]"
+                                    },
+                                    showlegend: false
+                                }
+                            },
+                            plotFilepath,
+                            config
+                        );
+                    }
+                }
+                break;
+            
+            case "UTILIZATION-BOX":
+                {
+                    /** @type {import("plotly.js").Data[]} */ const data = [];
+                    config.files.sort( ([ra, ca], [rb, cb]) => {
+                        if (ra.index !== rb.index) return ra.index-rb.index;
+                        if (ca.environmentVariables == null) return 1;
+                        if (cb.environmentVariables == null) return -1;
+                        const envInfoA = getEnvInfo(ca.environmentVariables);
+                        const envInfoB = getEnvInfo(cb.environmentVariables);
+                        if (envInfoA.queues !== envInfoB.queues) return envInfoB.queues-envInfoA.queues;
+                        return envInfoB.ethreads-envInfoA.ethreads;
+                    });
+
+                    for (const [runtime, benchmark] of config.files) {
+                        if (benchmark.type !== "TROUGHPUT-BENCHMARK") continue;
+                        const envInfo = getEnvInfo(benchmark.environmentVariables);
+
+                        // runtimes
+                        data.push({
+                            y: benchmark.cpuTimesMicroseconds.map( (c, i) => c/benchmark.runtimesMicroseconds[i]*100 ),
+                            name: (!runtime.id.includes("scone") || (envInfo.ethreads === 8 && envInfo.queues === 8)) ? getRuntimeName(runtime, benchmark.environmentVariables, benchmark.name) : `(${envInfo.queues}Q ${envInfo.ethreads}E)`+" ".repeat(runtime.index),
+                            type: "box",
+                            line: {
+                                color: getColor(benchmark, runtime),
+                                dash: benchmark.dash
+                            },
+                        });
+                    }
+
+                    // CPU accumulated time plot
+                    if (data.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-" + (config.name||"cpu-utilization-box") + ext))) {
+                        await createPlot(
+                            {
+                                data: data,
+                                layout: {
+                                    title: `<b>CPU Utilization for high Throughput</b>`,
+                                    yaxis: {
+                                        title: "<b>CPU Utilization</b> [%]"
+                                    },
+                                    showlegend: false
+                                }
+                            },
+                            plotFilepath,
+                            config
+                        );
+                    }
+                }
+                break;
+
+            case "UTILIZATION-AT-FREQUENCY-BOX":
+                {
+                    /** @type {import("plotly.js").Data[]} */ const data = [];
+                    let frequency = NaN;
+                    config.files.sort( ([ra, ca], [rb, cb]) => {
+                        if (ra.index !== rb.index) return ra.index-rb.index;
+                        if (ca.environmentVariables == null) return 1;
+                        if (cb.environmentVariables == null) return -1;
+                        const envInfoA = getEnvInfo(ca.environmentVariables);
+                        const envInfoB = getEnvInfo(cb.environmentVariables);
+                        if (envInfoA.queues !== envInfoB.queues) return envInfoB.queues-envInfoA.queues;
+                        return envInfoB.ethreads-envInfoA.ethreads;
+                    });
+
+                    const runtimes = new Set();
+                    for (const [runtime, benchmark] of config.files) {
+                        if (benchmark.type !== "FREQUENCY-BENCHMARK") continue;
+                        if (benchmark.benchmarks[0].targetFrequency !== benchmark.benchmarks[benchmark.benchmarks.length-1].targetFrequency) throw new Error("Frequency is varying. Cannot plot this!");
+                        frequency = benchmark.benchmarks[0].targetFrequency;
+                        const envInfo = getEnvInfo(benchmark.environmentVariables);
+
+                        // runtimes
+                        data.push({
+                            y: benchmark.benchmarks.map( b => b.fullCpuTime/b.fullDuration*100 ),
+                            name: !runtimes.has(runtime.id) ? getRuntimeName(runtime, benchmark.environmentVariables, benchmark.name) : `(${envInfo.queues}Q ${envInfo.ethreads}E)`+" ".repeat(runtime.index),
+                            type: "box",
+                            line: {
+                                color: getColor(benchmark, runtime),
+                                dash: benchmark.dash
+                            },
+                        });
+                        runtimes.add(runtime.id);
+                    }
+
+                    // CPU accumulated time plot
+                    if (data.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-" + (config.name||"cpu-utilization-box") + ext))) {
+                        await createPlot(
+                            {
+                                data: data,
                                 layout: {
                                     title: `<b>CPU Utilization at ${frequency} Request/s</b>`,
                                     yaxis: {
@@ -592,7 +695,7 @@ async function main() {
                     }
 
                     // CPU accumulated time plot
-                    if (cpuUtilizationLinePlot.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-cpu-utilization-line" + ext))) {
+                    if (cpuUtilizationLinePlot.length !== 0) for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-" + (config.name||"cpu-utilization-line") + ext))) {
                         await createPlot(
                             {
                                 data: cpuUtilizationLinePlot.concat([{ mode: "lines", line: { color: "#000000" }, name: "8Q 8E", x: [2], y: [0], showlegend: true, legendgroup: "setup" }, { mode: "lines", line: { color: "#000000", dash: "dash" }, name: "1Q 1E", x: [2], y: [0], showlegend: true, legendgroup: "setup" }]),
@@ -626,6 +729,7 @@ async function main() {
 
                     for (const [runtime, benchmark] of config.files) {
                         const envInfo = getEnvInfo(benchmark.environmentVariables);
+                        const fullName = getRuntimeName(runtime, benchmark.environmentVariables, benchmark.name, true);
                         if (envInfo) queueConfig.add(envInfo.queues.toString()+envInfo.ethreads.toString());
                         const showlegend = !runtime.id.includes("scone") || envInfo.ethreads === 8 && envInfo.queues === 8;
                         let x = [];
@@ -634,8 +738,10 @@ async function main() {
                             const benchmarksSorted = benchmark.benchmarks.slice().sort((a, b) => a.numExecutions / (a.fullDuration / 1e6) - b.numExecutions / (b.fullDuration / 1e6));
                             x = benchmark.benchmarks.map(b => b.numExecutions / (b.fullDuration / 1e6));
                             y = benchmark.benchmarks.map(b => b.fullCpuTime / b.fullDuration * 100);
-
                             if (config.normalize === true) y = y.map( v => v-100 );
+                            writeMetadataFile(directory, config.type, `Max. Throughput of ${fullName}: ${max(x)}req/s`);
+                            writeMetadataFile(directory, config.type, `Max. CPU Utilization of ${fullName}: ${max(y)}%\n`);
+
                             if (config.type === "UTILIZATION-THROUGHPUT") utilizationData.push({
                                 x: benchmarksSorted.map(b => b.numExecutions / (b.fullDuration / 1e6)),
                                 y: benchmarksSorted.map(b => b.fullCpuTime / b.fullDuration * 100),
@@ -973,6 +1079,8 @@ async function main() {
                             writeMetadataFile(directory, config.type, `Median syscall duration of ${longName}: ${median(benchmark.runtimesMicroseconds)}µs`);
                             writeMetadataFile(directory, config.type, `Average syscall CPU time of ${longName}: ${average(benchmark.cpuTimesMicroseconds.map(t => t / benchmark.numThreads))}µs`);
                             writeMetadataFile(directory, config.type, `Median syscall CPU time of ${longName}: ${median(benchmark.cpuTimesMicroseconds.map(t => t / benchmark.numThreads))}µs`);
+                            writeMetadataFile(directory, config.type, `Average syscall CPU utilization of ${longName}: ${average(benchmark.cpuTimesMicroseconds.map((t,i) => t/benchmark.runtimesMicroseconds[i]*100))}%`);
+                            writeMetadataFile(directory, config.type, `Median syscall CPU utilization of ${longName}: ${median(benchmark.cpuTimesMicroseconds.map((t,i) => t/benchmark.runtimesMicroseconds[i]*100))}%\n`);
                         }
 
                         const maxDuration = data.reduce( (max, d) => Math.max(max, Math.max(...d.y)), 0 );
@@ -1055,6 +1163,71 @@ async function main() {
                                         yaxis: {
                                             title: "<b>Duration</b> [us]",
                                             range: [0, maxDuration*1.05]
+                                        },
+                                        legend: {
+                                            x: 1,
+                                            y: 0.5,
+                                            xanchor: "left"
+                                        },
+                                        showlegend: false
+                                    }
+                                },
+                                plotFilepath,
+                                config
+                            );
+                        }
+                    }
+                    break;
+
+                case "EFFICIENCY-BOX":
+                    {
+                        /** @type {import("plotly.js").Data[]} */ const data = [];
+                        config.files.sort( ([ra, ca], [rb, cb]) => {
+                            if (ra.index !== rb.index) return ra.index-rb.index;
+                            if (ca.environmentVariables == null) return 1;
+                            if (cb.environmentVariables == null) return -1;
+                            const envInfoA = getEnvInfo(ca.environmentVariables);
+                            const envInfoB = getEnvInfo(cb.environmentVariables);
+                            if (envInfoA.queues !== envInfoB.queues) return envInfoB.queues-envInfoA.queues;
+                            return envInfoB.ethreads-envInfoA.ethreads;
+                        });
+
+                        let threads = NaN;
+                        let bufferSize = NaN;
+                        let i = 0;
+                        for (const [runtime, benchmark] of config.files) {
+                            if (benchmark.type !== "TROUGHPUT-BENCHMARK") continue;
+                            if (isNaN(threads)) threads = benchmark.numThreads;
+                            else if (threads !== benchmark.numThreads) throw new Error("Trying to compare benchmarks with different thread configuration!");
+                            if (benchmark.bufferSize && benchmark.bufferSize !== 1) bufferSize = benchmark.bufferSize;
+                            const envInfo = getEnvInfo(benchmark.environmentVariables);
+
+                            // CPU times
+                            data.push({
+                                y: benchmark.cpuTimesMicroseconds.map(t => t / benchmark.numThreads),
+                                name: (!runtime.id.includes("scone") || (envInfo.ethreads === 8 && envInfo.queues === 8)) ? getRuntimeName(runtime, benchmark.environmentVariables, benchmark.name) : `(${envInfo.queues}Q ${envInfo.ethreads}E)`+" ".repeat(runtime.index),
+                                type: "box",
+                                line: {
+                                    color: getColor(benchmark, runtime),
+                                    width: 1
+                                },
+                                marker: {
+                                    width: 2
+                                }
+                            });
+                            i++;
+                        }
+
+                        const maxDuration = data.reduce( (max, d) => Math.max(max, Math.max(...d.y)), 0 );
+                        const minDuration = data.reduce( (min, d) => Math.min(min, Math.min(...d.y)), Number.POSITIVE_INFINITY );
+                        for (const plotFilepath of PLOT_FILETYPES.map(ext => path.join(PLOT_DIR, directory + "-" + (config.name||"efficiency-box") + ext))) {
+                            await createPlot(
+                                {
+                                    data: data,
+                                    layout: {
+                                        title: `<b>Average CPU Time per ${isNaN(bufferSize) ? "SGX System Call" : bufferSize+" Byte Write in SGX"} using ${threads} Lthreads</b>`,
+                                        yaxis: {
+                                            title: "<b>CPU Time per Syscall</b> [us]"
                                         },
                                         legend: {
                                             x: 1,

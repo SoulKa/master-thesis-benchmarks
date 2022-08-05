@@ -4,8 +4,9 @@
 #include <time.h>
 #include <pthread.h>
 
+#define NUM_OFFSET 500
 #define NUM_SAMPLES 1000
-#define NUM_THREADS 8
+#define NUM_THREADS 64
 
 volatile unsigned int sample = 0;
 struct timespec times[NUM_SAMPLES];
@@ -13,15 +14,22 @@ pthread_mutex_t m;
 
 static void locking_thread() {
     unsigned int i;
+    struct timespec t;
+    t.tv_nsec = 5000;
+    t.tv_sec = 0;
+
     while (1) {
         pthread_mutex_lock(&m);
         i = sample++;
-        if (i >= NUM_SAMPLES) {
+        if (i >= NUM_SAMPLES + NUM_OFFSET) {
             pthread_mutex_unlock(&m);
             break;
         }
-        clock_gettime(CLOCK_MONOTONIC, times+i);
+        clock_gettime(CLOCK_MONOTONIC, i < NUM_OFFSET ? times : times+i-NUM_OFFSET);
         pthread_mutex_unlock(&m);
+        
+        // simulate syscall
+        nanosleep(&t, NULL);
     }
 }
 
